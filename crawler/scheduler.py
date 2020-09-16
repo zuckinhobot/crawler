@@ -2,6 +2,7 @@ from urllib import robotparser
 from util.threads import synchronized
 from collections import OrderedDict
 from .domain import Domain
+import time
 
 class Scheduler():
     #tempo (em segundos) entre as requisições
@@ -51,7 +52,7 @@ class Scheduler():
             e a url não foi descoberta ainda
         """
         if(int_depth <= self.int_depth_limit):
-            if(not obj_url in self.dic_url_per_domain):
+            if(not obj_url.geturl() in self.set_discovered_urls):
                 return True
             else:
                 return False
@@ -67,15 +68,16 @@ class Scheduler():
         """
         #https://docs.python.org/3/library/urllib.parse.html
         if self.can_add_page(obj_url,int_depth):
-            self.dic_url_per_domain
+            domain_tuple = (obj_url, int_depth)
+            if obj_url.netloc in self.dic_url_per_domain:
+                self.dic_url_per_domain[obj_url.netloc].append(domain_tuple)
+            else:
+                new_domain = Domain(obj_url.netloc, self.TIME_LIMIT_BETWEEN_REQUESTS)
+                self.dic_url_per_domain[new_domain] = [domain_tuple]
+            self.set_discovered_urls.add(obj_url.geturl())
+            return True
         else:
             return False
-
-
-
-
-
-
 
     @synchronized
     def get_next_url(self):
@@ -83,7 +85,21 @@ class Scheduler():
         Obtem uma nova URL por meio da fila. Essa URL é removida da fila.
         Logo após, caso o servidor não tenha mais URLs, o mesmo também é removido.
         """
-        return None,None
+        dic_url_per_domain_copy = self.dic_url_per_domain.copy()
+        for domain in dic_url_per_domain_copy:
+            if len(self.dic_url_per_domain[domain]) > 0:
+                if (not domain.is_accessible()):
+                    time_since_last_access = domain.time_since_last_access()
+                    if (time_since_last_access <= self.TIME_LIMIT_BETWEEN_REQUESTS):
+                        time.sleep(self.TIME_LIMIT_BETWEEN_REQUESTS - time_since_last_access)
+
+                else:
+                    domain.accessed_now()
+                    return self.dic_url_per_domain[domain].pop(0)
+
+            else:
+                self.dic_url_per_domain.pop(domain, None)           
+
 
     def can_fetch_page(self,obj_url):
         """

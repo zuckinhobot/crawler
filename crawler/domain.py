@@ -17,7 +17,7 @@ class Domain():
 	def is_accessible(self):
 		time = self.time_since_last_access.seconds
 
-		if self.int_time_limit_seconds < time:
+		if self.int_time_limit_seconds <= time:
 			req = requests.get("http://" + self.nam_domain.strip("http://"))
 			if req.status_code == 200:
 				return True
