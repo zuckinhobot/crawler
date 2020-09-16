@@ -26,7 +26,7 @@ class Scheduler():
         self.int_page_count = 0
 
         self.dic_url_per_domain = OrderedDict()
-        self.set_discovered_urls = set()
+        self.set_discovered_urls = set(arr_urls_seeds)
         self.dic_robots_per_domain = {}
 
     @synchronized
@@ -88,7 +88,8 @@ class Scheduler():
         dic_url_per_domain_copy = self.dic_url_per_domain.copy()
         any_domain_is_accessible = any(
             domain.is_accessible() is True for domain in self.dic_url_per_domain)
-        if(not any_domain_is_accessible):
+        has_any_urls_left = len(self.dic_url_per_domain.values()) > 0
+        if(not any_domain_is_accessible and has_any_urls_left):
             time.sleep(self.TIME_LIMIT_BETWEEN_REQUESTS)
 
         for domain in dic_url_per_domain_copy:
@@ -106,5 +107,11 @@ class Scheduler():
         """
         Verifica, por meio do robots.txt se uma determinada URL pode ser coletada
         """
+        if not obj_url.netloc in self.dic_robots_per_domain:
+            rp = robotparser.RobotFileParser()
+            rp.set_url("http://" + obj_url.netloc + '/robots.txt')
+            rp.read()
+            self.dic_robots_per_domain[obj_url.netloc] = rp
 
-        return False
+        robot = self.dic_robots_per_domain[obj_url.netloc]
+        return robot.can_fetch(self.str_usr_agent, obj_url.geturl())
