@@ -4,11 +4,12 @@ from collections import OrderedDict
 from .domain import Domain
 import time
 
+
 class Scheduler():
-    #tempo (em segundos) entre as requisições
+    # tempo (em segundos) entre as requisições
     TIME_LIMIT_BETWEEN_REQUESTS = 20
 
-    def __init__(self,str_usr_agent,int_page_limit,int_depth_limit,arr_urls_seeds):
+    def __init__(self, str_usr_agent, int_page_limit, int_depth_limit, arr_urls_seeds):
         """
             Inicializa o escalonador. Atributos:
                 - `str_usr_agent`: Nome do `User agent`. Usualmente, é o nome do navegador, em nosso caso,  será o nome do coletor (usualmente, terminado em `bot`)
@@ -28,7 +29,6 @@ class Scheduler():
         self.set_discovered_urls = set()
         self.dic_robots_per_domain = {}
 
-
     @synchronized
     def count_fetched_page(self):
         """
@@ -44,9 +44,8 @@ class Scheduler():
             return True
         return False
 
-
     @synchronized
-    def can_add_page(self,obj_url,int_depth):
+    def can_add_page(self, obj_url, int_depth):
         """
             Retorna verdadeiro caso  profundade for menor que a maxima
             e a url não foi descoberta ainda
@@ -60,19 +59,20 @@ class Scheduler():
             return False
 
     @synchronized
-    def add_new_page(self,obj_url,int_depth):
+    def add_new_page(self, obj_url, int_depth):
         """
             Adiciona uma nova página
             obj_url: Objeto da classe ParseResult com a URL a ser adicionada
             int_depth: Profundidade na qual foi coletada essa URL
         """
-        #https://docs.python.org/3/library/urllib.parse.html
-        if self.can_add_page(obj_url,int_depth):
+        # https://docs.python.org/3/library/urllib.parse.html
+        if self.can_add_page(obj_url, int_depth):
             domain_tuple = (obj_url, int_depth)
             if obj_url.netloc in self.dic_url_per_domain:
                 self.dic_url_per_domain[obj_url.netloc].append(domain_tuple)
             else:
-                new_domain = Domain(obj_url.netloc, self.TIME_LIMIT_BETWEEN_REQUESTS)
+                new_domain = Domain(
+                    obj_url.netloc, self.TIME_LIMIT_BETWEEN_REQUESTS)
                 self.dic_url_per_domain[new_domain] = [domain_tuple]
             self.set_discovered_urls.add(obj_url.geturl())
             return True
@@ -86,26 +86,25 @@ class Scheduler():
         Logo após, caso o servidor não tenha mais URLs, o mesmo também é removido.
         """
         dic_url_per_domain_copy = self.dic_url_per_domain.copy()
+        any_domain_is_accessible = any(
+            domain.is_accessible() is True for domain in self.dic_url_per_domain)
+        if(not any_domain_is_accessible):
+            time.sleep(self.TIME_LIMIT_BETWEEN_REQUESTS)
+
         for domain in dic_url_per_domain_copy:
             if len(self.dic_url_per_domain[domain]) > 0:
-                if (not domain.is_accessible()):
-                    time_since_last_access = domain.time_since_last_access()
-                    if (time_since_last_access <= self.TIME_LIMIT_BETWEEN_REQUESTS):
-                        time.sleep(self.TIME_LIMIT_BETWEEN_REQUESTS - time_since_last_access)
-
-                else:
+                if (domain.is_accessible()):
                     domain.accessed_now()
                     return self.dic_url_per_domain[domain].pop(0)
 
             else:
-                self.dic_url_per_domain.pop(domain, None)           
+                self.dic_url_per_domain.pop(domain, None)
 
+        return None, None
 
-    def can_fetch_page(self,obj_url):
+    def can_fetch_page(self, obj_url):
         """
         Verifica, por meio do robots.txt se uma determinada URL pode ser coletada
         """
-
-
 
         return False
