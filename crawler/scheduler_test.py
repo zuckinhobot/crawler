@@ -58,8 +58,6 @@ class SchedulerTest(unittest.TestCase):
         #ao obter a UOL, é considerado a primeira requição nela
         time_first_hit_UOL = datetime.now()
 
-
-        print("Verificação da ordem das URLs...")
         arr_expected_order = [urlTerra[0],urlUOL1[0],urlGlobo[0]]
         arr_url_order = [u1[0],u2[0],u3[0]]
         for i,expected_url in enumerate(arr_expected_order):
@@ -67,14 +65,12 @@ class SchedulerTest(unittest.TestCase):
 
 
         #resgata o quarto (UOL)
-        print("Resgatando a segunda página do mesmo dominio...")
         u4 = self.scheduler.get_next_url()
         time_second_hit_UOL = datetime.now()
         time_wait = (time_second_hit_UOL - time_first_hit_UOL)
         time_wait_seconds = time_wait.seconds
         if(time_wait.microseconds>500000):
             time_wait_seconds += 1
-        print(f"Tempo esperado: {time_wait_seconds} segundos")
         self.assertTrue(time_wait_seconds >= Scheduler.TIME_LIMIT_BETWEEN_REQUESTS,f"O tempo de espera entre as duas requisições do mesmo servidor não foi maior que {Scheduler.TIME_LIMIT_BETWEEN_REQUESTS} (foi {time_wait_seconds} segundos)")
 
     def test_can_fetch_page(self):
