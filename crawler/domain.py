@@ -1,5 +1,4 @@
 from datetime import datetime,timedelta
-import requests
 
 class Domain():
 	def __init__(self,nam_domain,int_time_limit_between_requests):
@@ -18,11 +17,7 @@ class Domain():
 		time = self.time_since_last_access.seconds
 
 		if self.int_time_limit_seconds <= time:
-			req = requests.get("http://" + self.nam_domain.strip("http://"))
-			if req.status_code == 200:
-				return True
-			else:
-				return False
+			return True
 		else:
 			return False
 
