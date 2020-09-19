@@ -114,5 +114,6 @@ class Scheduler():
             rp.set_url("http://" + obj_url.netloc + '/robots.txt')
             rp.read()
             self.dic_robots_per_domain[obj_url.netloc] = rp
-
-        return rp.can_fetch(self.str_usr_agent, obj_url.geturl())
+        
+        robot = self.dic_robots_per_domain[obj_url.netloc]
+        return robot.can_fetch(self.str_usr_agent, obj_url.geturl())
