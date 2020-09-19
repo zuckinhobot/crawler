@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from urllib import robotparser
 from util.threads import synchronized
 from collections import OrderedDict
@@ -113,5 +115,4 @@ class Scheduler():
             rp.read()
             self.dic_robots_per_domain[obj_url.netloc] = rp
 
-        robot = self.dic_robots_per_domain[obj_url.netloc]
-        return robot.can_fetch(self.str_usr_agent, obj_url.geturl())
+        return rp.can_fetch(self.str_usr_agent, obj_url.geturl())

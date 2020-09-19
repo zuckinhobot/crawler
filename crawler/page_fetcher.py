@@ -13,7 +13,7 @@ class PageFetcher(Thread):
         headers = {
             'User-Agent': 'botzuck',
         }
-        url = 'http://' + obj_url.netloc + obj_url.path
+        url = obj_url.geturl()
         if not '.html' in obj_url.path and '.' in obj_url.path:
             return None
         else:
