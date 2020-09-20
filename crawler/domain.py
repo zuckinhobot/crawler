@@ -15,11 +15,7 @@ class Domain():
 
 	def is_accessible(self):
 		time = self.time_since_last_access.seconds
-
-		if self.int_time_limit_seconds <= time:
-			return True
-		else:
-			return False
+		return self.int_time_limit_seconds <= time
 
 	def __eq__(self, domain):
 		if type(domain) is str:
