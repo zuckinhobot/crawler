@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from urllib import robotparser
 from util.threads import synchronized
 from collections import OrderedDict
@@ -5,7 +7,7 @@ from .domain import Domain
 import time
 
 
-class Scheduler():
+class Scheduler:
     # tempo (em segundos) entre as requisições
     TIME_LIMIT_BETWEEN_REQUESTS = 20
 
@@ -40,7 +42,7 @@ class Scheduler():
         """
             Verifica se finalizou a coleta
         """
-        if(self.int_page_count > self.int_page_limit):
+        if self.int_page_count > self.int_page_limit:
             return True
         return False
 
@@ -50,13 +52,10 @@ class Scheduler():
             Retorna verdadeiro caso  profundade for menor que a maxima
             e a url não foi descoberta ainda
         """
-        if(int_depth <= self.int_depth_limit):
-            if(not obj_url.geturl() in self.set_discovered_urls):
-                return True
-            else:
-                return False
-        else:
-            return False
+        return (
+            int_depth <= self.int_depth_limit
+            and obj_url.geturl() not in self.set_discovered_urls
+        )
 
     @synchronized
     def add_new_page(self, obj_url, int_depth):
@@ -66,18 +65,18 @@ class Scheduler():
             int_depth: Profundidade na qual foi coletada essa URL
         """
         # https://docs.python.org/3/library/urllib.parse.html
-        if self.can_add_page(obj_url, int_depth):
-            domain_tuple = (obj_url, int_depth)
-            if obj_url.netloc in self.dic_url_per_domain:
-                self.dic_url_per_domain[obj_url.netloc].append(domain_tuple)
-            else:
-                new_domain = Domain(
-                    obj_url.netloc, self.TIME_LIMIT_BETWEEN_REQUESTS)
-                self.dic_url_per_domain[new_domain] = [domain_tuple]
-            self.set_discovered_urls.add(obj_url.geturl())
-            return True
-        else:
+        if not self.can_add_page(obj_url, int_depth):
             return False
+
+        domain_tuple = (obj_url, int_depth)
+        if obj_url.netloc in self.dic_url_per_domain:
+            self.dic_url_per_domain[obj_url.netloc].append(domain_tuple)
+        else:
+            new_domain = Domain(obj_url.netloc, self.TIME_LIMIT_BETWEEN_REQUESTS)
+            self.dic_url_per_domain[new_domain] = [domain_tuple]
+        self.set_discovered_urls.add(obj_url.geturl())
+
+        return True
 
     @synchronized
     def get_next_url(self):
@@ -87,14 +86,15 @@ class Scheduler():
         """
         dic_url_per_domain_copy = self.dic_url_per_domain.copy()
         any_domain_is_accessible = any(
-            domain.is_accessible() is True for domain in self.dic_url_per_domain)
+            domain.is_accessible() is True for domain in self.dic_url_per_domain
+        )
         has_any_urls_left = len(self.dic_url_per_domain.values()) > 0
-        if(not any_domain_is_accessible and has_any_urls_left):
+        if not any_domain_is_accessible and has_any_urls_left:
             time.sleep(self.TIME_LIMIT_BETWEEN_REQUESTS)
 
         for domain in dic_url_per_domain_copy:
             if len(self.dic_url_per_domain[domain]) > 0:
-                if (domain.is_accessible()):
+                if domain.is_accessible():
                     domain.accessed_now()
                     return self.dic_url_per_domain[domain].pop(0)
 
@@ -109,7 +109,7 @@ class Scheduler():
         """
         if not obj_url.netloc in self.dic_robots_per_domain:
             rp = robotparser.RobotFileParser()
-            rp.set_url("http://" + obj_url.netloc + '/robots.txt')
+            rp.set_url("http://" + obj_url.netloc + "/robots.txt")
             rp.read()
             self.dic_robots_per_domain[obj_url.netloc] = rp
 

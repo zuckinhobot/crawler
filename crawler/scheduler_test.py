@@ -75,7 +75,7 @@ class SchedulerTest(unittest.TestCase):
 
     def test_can_fetch_page(self):
         obj_url_not_allowed = urlparse("https://www.globo.com/beta/dasdas")
-        obj_url_allowed = urlparse("https://www.terra.com/index.html")
+        obj_url_allowed = urlparse("https://www.terra.com.br/index.html")
 
         bol_not_allowed = self.scheduler.can_fetch_page(obj_url_not_allowed)
         bol_allowed = self.scheduler.can_fetch_page(obj_url_allowed)
