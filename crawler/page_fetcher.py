@@ -11,13 +11,12 @@ class PageFetcher(Thread):
 
     def request_url(self, obj_url):
         headers = {
-            'User-Agent': 'botzuck',
+            "User-Agent": "botzuck",
         }
         url = obj_url.geturl()
-        if not '.html' in obj_url.path and '.' in obj_url.path:
-            return None
-        else:
-            return requests.get(url, headers=headers).content
+        r = requests.get(url, headers=headers)
+
+        return r.content if "text/html" in r.headers.get("content-type") else None
 
     def discover_links(self, obj_url, int_depth, bin_str_content):
         """
