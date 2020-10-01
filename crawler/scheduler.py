@@ -109,6 +109,7 @@ class Scheduler:
 
         return None, None
 
+    @synchronized
     def can_fetch_page(self, obj_url):
         """
         Verifica, por meio do robots.txt se uma determinada URL pode ser coletada
