@@ -8,6 +8,7 @@ from urllib.parse import urlparse, urljoin
 
 class PageFetcher(Thread):
     def __init__(self, obj_scheduler):
+        super().__init__()
         self.obj_scheduler = obj_scheduler
 
     def request_url(self, obj_url):
@@ -41,13 +42,15 @@ class PageFetcher(Thread):
 
     def crawl_new_url(self):
         url = self.obj_scheduler.get_next_url()
-        if self.obj_scheduler.can_fetch_page(url):
-            urbi = self.request_url(url)
+        if url[0] and self.obj_scheduler.can_fetch_page(url[0]):
+            urbi = self.request_url(url[0])
             if urbi is not None:
+                self.obj_scheduler.count_fetched_page()
                 print(url[0].geturl())
                 for url, depth in self.discover_links(url[0], url[1], urbi):
                     self.obj_scheduler.add_new_page(url, depth)
 
     def run(self):
+        print("Thread started!")
         while not self.obj_scheduler.has_finished_crawl():
             self.crawl_new_url()
