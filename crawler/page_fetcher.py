@@ -47,9 +47,7 @@ class PageFetcher(Thread):
                 print(url[0].geturl())
                 for url, depth in self.discover_links(url[0], url[1], urbi):
                     self.obj_scheduler.add_new_page(url, depth)
-        pass
 
     def run(self):
         while not self.obj_scheduler.has_finished_crawl():
             self.crawl_new_url()
-        pass
