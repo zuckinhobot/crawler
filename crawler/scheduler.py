@@ -84,13 +84,15 @@ class Scheduler:
         Obtem uma nova URL por meio da fila. Essa URL é removida da fila.
         Logo após, caso o servidor não tenha mais URLs, o mesmo também é removido.
         """
-        dic_url_per_domain_copy = self.dic_url_per_domain.copy()
-        any_domain_is_accessible = any(
-            domain.is_accessible() is True for domain in self.dic_url_per_domain
-        )
-        has_any_urls_left = len(self.dic_url_per_domain.values()) > 0
-        if not any_domain_is_accessible and has_any_urls_left:
-            time.sleep(self.TIME_LIMIT_BETWEEN_REQUESTS)
+        while True:
+            dic_url_per_domain_copy = self.dic_url_per_domain.copy()
+            any_domain_is_accessible = any(
+                domain.is_accessible() is True for domain in self.dic_url_per_domain
+            )
+            has_any_urls_left = len(self.dic_url_per_domain.values()) > 0
+
+            if any_domain_is_accessible or not has_any_urls_left:
+                break
 
         for domain in dic_url_per_domain_copy:
             if len(self.dic_url_per_domain[domain]) > 0:
