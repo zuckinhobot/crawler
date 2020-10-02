@@ -3,6 +3,7 @@
 from urllib import robotparser
 from util.threads import synchronized
 from collections import OrderedDict
+from urllib.parse import urlparse
 from .domain import Domain
 import time
 
@@ -28,8 +29,11 @@ class Scheduler:
         self.int_page_count = 0
 
         self.dic_url_per_domain = OrderedDict()
-        self.set_discovered_urls = set(arr_urls_seeds)
+        self.set_discovered_urls = set()
         self.dic_robots_per_domain = {}
+
+        for url_seed in arr_urls_seeds:
+            self.add_new_page(urlparse(url_seed), 0)
 
     @synchronized
     def count_fetched_page(self):
@@ -84,13 +88,15 @@ class Scheduler:
         Obtem uma nova URL por meio da fila. Essa URL é removida da fila.
         Logo após, caso o servidor não tenha mais URLs, o mesmo também é removido.
         """
-        dic_url_per_domain_copy = self.dic_url_per_domain.copy()
-        any_domain_is_accessible = any(
-            domain.is_accessible() is True for domain in self.dic_url_per_domain
-        )
-        has_any_urls_left = len(self.dic_url_per_domain.values()) > 0
-        if not any_domain_is_accessible and has_any_urls_left:
-            time.sleep(self.TIME_LIMIT_BETWEEN_REQUESTS)
+        while True:
+            dic_url_per_domain_copy = self.dic_url_per_domain.copy()
+            any_domain_is_accessible = any(
+                domain.is_accessible() is True for domain in self.dic_url_per_domain
+            )
+            has_any_urls_left = len(self.dic_url_per_domain.values()) > 0
+
+            if any_domain_is_accessible or not has_any_urls_left:
+                break
 
         for domain in dic_url_per_domain_copy:
             if len(self.dic_url_per_domain[domain]) > 0:
@@ -103,15 +109,22 @@ class Scheduler:
 
         return None, None
 
+    @synchronized
     def can_fetch_page(self, obj_url):
         """
         Verifica, por meio do robots.txt se uma determinada URL pode ser coletada
         """
         if not obj_url.netloc in self.dic_robots_per_domain:
-            rp = robotparser.RobotFileParser()
-            rp.set_url("http://" + obj_url.netloc + "/robots.txt")
-            rp.read()
-            self.dic_robots_per_domain[obj_url.netloc] = rp
+            try:
+                rp = robotparser.RobotFileParser()
+                rp.set_url("http://" + obj_url.netloc + "/robots.txt")
+                rp.read()
+                self.dic_robots_per_domain[obj_url.netloc] = rp
+            except Exception:
+                print(f"Failed checking robots.txt from {obj_url.netloc}")
+
+        if obj_url.netloc not in self.dic_robots_per_domain:
+            return True
 
         robot = self.dic_robots_per_domain[obj_url.netloc]
         return robot.can_fetch(self.str_usr_agent, obj_url.geturl())
