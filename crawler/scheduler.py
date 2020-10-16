@@ -10,12 +10,11 @@ import time
 
 class Scheduler:
     # tempo (em segundos) entre as requisições
-    TIME_LIMIT_BETWEEN_REQUESTS = 20
+    TIME_LIMIT_BETWEEN_REQUESTS = 30
     Time_fim = 0
     Time_init = time.time()
-    print("Time init: {}".format(Time_init))
 
-    def __init__(self, str_usr_agent, int_page_limit, int_depth_limit, arr_urls_seeds):
+    def __init__(self, str_usr_agent, int_page_limit, int_depth_limit, arr_urls_seeds, numthreads, v_numthreads):
         """
             Inicializa o escalonador. Atributos:
                 - `str_usr_agent`: Nome do `User agent`. Usualmente, é o nome do navegador, em nosso caso,  será o nome do coletor (usualmente, terminado em `bot`)
@@ -30,6 +29,9 @@ class Scheduler:
         self.int_page_limit = int_page_limit
         self.int_depth_limit = int_depth_limit
         self.int_page_count = 0
+
+        self.numthreads = numthreads
+        self.v_numthreads=v_numthreads
 
         self.dic_url_per_domain = OrderedDict()
         self.set_discovered_urls = set()
@@ -133,3 +135,12 @@ class Scheduler:
 
         robot = self.dic_robots_per_domain[obj_url.netloc]
         return robot.can_fetch(self.str_usr_agent, obj_url.geturl())
+
+    @synchronized
+    def registerData(self):
+        if self.numthreads == max(self.numthreads):
+            pass
+        else:
+            f = open("[data]"+ self.numthreads +".txt", "w")
+            f.write("Woops! I have deleted the content!")
+            f.close()
