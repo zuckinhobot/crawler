@@ -10,9 +10,11 @@ import time
 
 class Scheduler:
     # tempo (em segundos) entre as requisições
-    TIME_LIMIT_BETWEEN_REQUESTS = 20
+    TIME_LIMIT_BETWEEN_REQUESTS = 30
+    Time_fim = 0
+    Time_init = time.time()
 
-    def __init__(self, str_usr_agent, int_page_limit, int_depth_limit, arr_urls_seeds):
+    def __init__(self, str_usr_agent, int_page_limit, int_depth_limit, arr_urls_seeds, numthreads):
         """
             Inicializa o escalonador. Atributos:
                 - `str_usr_agent`: Nome do `User agent`. Usualmente, é o nome do navegador, em nosso caso,  será o nome do coletor (usualmente, terminado em `bot`)
@@ -27,6 +29,8 @@ class Scheduler:
         self.int_page_limit = int_page_limit
         self.int_depth_limit = int_depth_limit
         self.int_page_count = 0
+
+        self.numthreads = numthreads
 
         self.dic_url_per_domain = OrderedDict()
         self.set_discovered_urls = set()
@@ -47,6 +51,9 @@ class Scheduler:
             Verifica se finalizou a coleta
         """
         if self.int_page_count > self.int_page_limit:
+            self.Time_fim = time.time()
+            self.registerData()
+            print("Thread ended!")
             return True
         return False
 
@@ -57,8 +64,8 @@ class Scheduler:
             e a url não foi descoberta ainda
         """
         return (
-            int_depth <= self.int_depth_limit
-            and obj_url.geturl() not in self.set_discovered_urls
+                int_depth <= self.int_depth_limit
+                and obj_url.geturl() not in self.set_discovered_urls
         )
 
     @synchronized
@@ -89,14 +96,17 @@ class Scheduler:
         Logo após, caso o servidor não tenha mais URLs, o mesmo também é removido.
         """
         while True:
-            dic_url_per_domain_copy = self.dic_url_per_domain.copy()
-            any_domain_is_accessible = any(
-                domain.is_accessible() is True for domain in self.dic_url_per_domain
-            )
-            has_any_urls_left = len(self.dic_url_per_domain.values()) > 0
+            try:
+                dic_url_per_domain_copy = self.dic_url_per_domain.copy()
+                any_domain_is_accessible = any(
+                    domain.is_accessible() is True for domain in self.dic_url_per_domain
+                )
+                has_any_urls_left = len(self.dic_url_per_domain.values()) > 0
 
-            if any_domain_is_accessible or not has_any_urls_left:
-                break
+                if any_domain_is_accessible or not has_any_urls_left:
+                    break
+            except:
+                pass
 
         for domain in dic_url_per_domain_copy:
             if len(self.dic_url_per_domain[domain]) > 0:
@@ -128,3 +138,8 @@ class Scheduler:
 
         robot = self.dic_robots_per_domain[obj_url.netloc]
         return robot.can_fetch(self.str_usr_agent, obj_url.geturl())
+
+    @synchronized
+    def registerData(self):
+
+        f = open("data.txt", "a")

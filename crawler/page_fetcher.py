@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from threading import Thread
 import requests
+import time
 import argparse
 import urllib
 from urllib.parse import urlparse, urljoin
