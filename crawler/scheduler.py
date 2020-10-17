@@ -14,7 +14,8 @@ class Scheduler:
     Time_fim = 0
     Time_init = time.time()
 
-    def __init__(self, str_usr_agent, int_page_limit, int_depth_limit, arr_urls_seeds, numthreads, v_numthreads):
+    def __init__(self, str_usr_agent, int_page_limit, int_depth_limit, arr_urls_seeds, numthreads):
+
         """
             Inicializa o escalonador. Atributos:
                 - `str_usr_agent`: Nome do `User agent`. Usualmente, é o nome do navegador, em nosso caso,  será o nome do coletor (usualmente, terminado em `bot`)
@@ -31,7 +32,6 @@ class Scheduler:
         self.int_page_count = 0
 
         self.numthreads = numthreads
-        self.v_numthreads=v_numthreads
 
         self.dic_url_per_domain = OrderedDict()
         self.set_discovered_urls = set()
@@ -53,6 +53,8 @@ class Scheduler:
         """
         if self.int_page_count > self.int_page_limit:
             self.Time_fim = time.time()
+            self.registerData()
+
             print("Thread ended!")
             return True
         return False
@@ -96,14 +98,17 @@ class Scheduler:
         Logo após, caso o servidor não tenha mais URLs, o mesmo também é removido.
         """
         while True:
-            dic_url_per_domain_copy = self.dic_url_per_domain.copy()
-            any_domain_is_accessible = any(
-                domain.is_accessible() is True for domain in self.dic_url_per_domain
-            )
-            has_any_urls_left = len(self.dic_url_per_domain.values()) > 0
+            try:
+                dic_url_per_domain_copy = self.dic_url_per_domain.copy()
+                any_domain_is_accessible = any(
+                    domain.is_accessible() is True for domain in self.dic_url_per_domain
+                )
+                has_any_urls_left = len(self.dic_url_per_domain.values()) > 0
 
-            if any_domain_is_accessible or not has_any_urls_left:
-                break
+                if any_domain_is_accessible or not has_any_urls_left:
+                    break
+            except:
+                pass
 
         for domain in dic_url_per_domain_copy:
             if len(self.dic_url_per_domain[domain]) > 0:
@@ -144,9 +149,6 @@ class Scheduler:
 
     @synchronized
     def registerData(self):
-        if self.numthreads == max(self.numthreads):
-            pass
-        else:
-            f = open("[data]"+ self.numthreads +".txt", "w")
-            f.write("Woops! I have deleted the content!")
-            f.close()
+
+        f = open("data.txt", "a")
+        f.write(str(self.numthreads) + "," + str(self.Time_fim - self.Time_init) + "\n")
