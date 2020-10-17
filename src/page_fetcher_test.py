@@ -10,7 +10,7 @@ class PageFetcherTest(unittest.TestCase):
         self.scheduler = Scheduler(str_usr_agent="xxbot",
                                 int_page_limit=10,
                                 int_depth_limit=3,
-                                arr_urls_seeds=arr_urls_seeds, numthreads=1, v_numthreads=1)
+                                arr_urls_seeds=arr_urls_seeds)
         self.fetcher = PageFetcher(self.scheduler)
 
     def test_request_url(self):
