@@ -126,6 +126,12 @@ class Scheduler:
                 rp = robotparser.RobotFileParser()
                 rp.set_url("http://" + obj_url.netloc + "/robots.txt")
                 rp.read()
+
+                int_crawl_delay = rp.crawl_delay(self.str_usr_agent)
+
+                if int_crawl_delay is not None and int_crawl_delay > self.TIME_LIMIT_BETWEEN_REQUESTS:
+                    self.dic_url_per_domain[obj_url.netloc].int_time_limit_seconds = int_crawl_delay
+                
                 self.dic_robots_per_domain[obj_url.netloc] = rp
             except Exception:
                 print(f"Failed checking robots.txt from {obj_url.netloc}")

@@ -22,7 +22,9 @@ class SchedulerTest(unittest.TestCase):
         self.scheduler = Scheduler(str_usr_agent="xxbot",
                                 int_page_limit=10,
                                 int_depth_limit=3,
-                                arr_urls_seeds=arr_urls_seeds)
+                                arr_urls_seeds=arr_urls_seeds,
+                                numthreads=1,
+                                v_numthreads=1)
 
 
     def test_init(self):
@@ -76,9 +78,14 @@ class SchedulerTest(unittest.TestCase):
     def test_can_fetch_page(self):
         obj_url_not_allowed = urlparse("https://www.globo.com/beta/dasdas")
         obj_url_allowed = urlparse("https://www.terra.com.br/index.html")
+        teste = urlparse("https://www.uol.com.br/")
+        teste2 = urlparse("http://www.musi-cal.com/")
 
         bol_not_allowed = self.scheduler.can_fetch_page(obj_url_not_allowed)
         bol_allowed = self.scheduler.can_fetch_page(obj_url_allowed)
+        self.scheduler.can_fetch_page(teste)
+        self.scheduler.can_fetch_page(teste2)
+
 
         obj_robot_not_allowed = self.scheduler.dic_robots_per_domain[obj_url_not_allowed.netloc]
 
