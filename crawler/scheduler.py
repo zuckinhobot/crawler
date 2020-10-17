@@ -64,8 +64,8 @@ class Scheduler:
             e a url não foi descoberta ainda
         """
         return (
-                int_depth <= self.int_depth_limit
-                and obj_url.geturl() not in self.set_discovered_urls
+            int_depth <= self.int_depth_limit
+            and obj_url.geturl() not in self.set_discovered_urls
         )
 
     @synchronized
@@ -143,3 +143,4 @@ class Scheduler:
     def registerData(self):
 
         f = open("data.txt", "a")
+        f.write(str(self.numthreads) + "," + str(self.Time_fim - self.Time_init) + "\n")
